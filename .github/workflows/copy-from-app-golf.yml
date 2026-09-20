@@ -1,0 +1,34 @@
+name: Copy from app-golf
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Copy exact tree from app-golf
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf /tmp/src
+          git clone --depth 1 https://github.com/ardu01/app-golf.git /tmp/src
+          rsync -a --delete --exclude .git --exclude .github /tmp/src/ .
+          mkdir -p .github/workflows
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No file changes"
+          else
+            git commit -m "Copy exact contents from ardu01/app-golf (v3 snapshot)"
+            git push
+          fi
